@@ -1,0 +1,17 @@
+beautifulsoup4
+chromadb
+tiktoken
+langchain-core
+langchain-community
+langchain-text-splitters
+langgraph
+langchain-anthropic
+langchain-openai
+langchainhub
+langgraph-cli
+langgraph-sdk
+langchain-groq
+langchain-huggingface
+unstructured
+unstructured[pdf]
+faiss-cpu
