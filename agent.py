@@ -1,5 +1,6 @@
 from langchain_community.document_loaders import DirectoryLoader
 from langchain_groq import ChatGroq
+from langchain_openai import ChatOpenAI
 from langchain_community.tools.tavily_search import TavilySearchResults
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.messages import BaseMessage, AIMessage, convert_to_messages
@@ -8,19 +9,18 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.embeddings import HuggingFaceBgeEmbeddings, OpenAIEmbeddings
 from langchain_community.vectorstores import FAISS
-from langchain_chroma import Chroma
 from typing import Annotated, Iterator, Literal, TypedDict
 from langchain_core.documents import Document
 from langchain import hub
 from langgraph.graph import END, StateGraph, add_messages
 
-MAX_RETRIES = 3
+MAX_RETRIES = 2
 
 
-loader = DirectoryLoader('Documents', glob="**/*.pdf")
+loader = DirectoryLoader('Documents', glob="**/*.txt")
 docs = loader.load()
 print(docs)
-text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
+text_splitter = RecursiveCharacterTextSplitter(chunk_size=2000, chunk_overlap=100)
 texts = text_splitter.split_documents(docs)
 
 print(texts)
@@ -30,11 +30,11 @@ embedding_function = OpenAIEmbeddings()
 db = FAISS.from_documents(docs, embedding_function)
 retriever = db.as_retriever()
 
-llm = ChatGroq(model="mixtral-8x7b-32768",temperature=0)
+llm = ChatOpenAI(model="gpt-4o-mini",temperature=0)
 
 
 
-tavily_search_tool = TavilySearchResults(max_results=2)
+tavily_search_tool = TavilySearchResults(max_results=1)
 
 
 
@@ -132,7 +132,7 @@ def document_search(state: GraphState):
     question = convert_to_messages(state["messages"])[-1].content
 
     # Retrieval
-    documents = retriever.invoke(question)
+    documents = db.similarity_search(question, k=1)
     return {"documents": documents, "question": question, "web_fallback": True}
 
 
